@@ -1,0 +1,139 @@
+import java.util.Random;
+import java.util.Scanner;
+
+public class MineSweeper {
+    private int[][] mayinAlani;
+    private boolean[][] bulunan;
+    private int satirlar;
+    private int sutunlar;
+    private int kalanHucreler;
+
+    public MineSweeper(int satirlar, int sutunlar) {
+        this.satirlar = satirlar;
+        this.sutunlar = sutunlar;
+        this.mayinAlani = new int[satirlar][sutunlar];
+        this.bulunan = new boolean[satirlar][sutunlar];
+        this.kalanHucreler = satirlar * sutunlar;
+
+        mayinAlaniBaslat();
+        mayinYerlestir();
+        komsuMayinlariHesapla();
+    }
+
+    private void mayinAlaniBaslat() {
+        for (int i = 0; i < satirlar; i++) {
+            for (int j = 0; j < sutunlar; j++) {
+                mayinAlani[i][j] = 0;
+                bulunan[i][j] = false;
+            }
+        }
+    }
+
+    private void mayinYerlestir() {
+        Random random = new Random();
+        int toplamMayinlar = satirlar * sutunlar / 4;
+
+        for (int i = 0; i < toplamMayinlar; i++) {
+            int satir, sutun;
+            do {
+                satir = random.nextInt(satirlar);
+                sutun = random.nextInt(sutunlar);
+            } while (mayinAlani[satir][sutun] == -1); // -1 bir mayını temsil eder
+            mayinAlani[satir][sutun] = -1;
+        }
+    }
+
+    private void komsuMayinlariHesapla() {
+        for (int i = 0; i < satirlar; i++) {
+            for (int j = 0; j < sutunlar; j++) {
+                if (mayinAlani[i][j] != -1) {
+                    mayinAlani[i][j] = komsuMayinlarinSayisi(i, j);
+                }
+            }
+        }
+    }
+
+    private int komsuMayinlarinSayisi(int satir, int sutun) {
+        int sayac = 0;
+        for (int i = Math.max(0, satir - 1); i <= Math.min(satirlar - 1, satir + 1); i++) {
+            for (int j = Math.max(0, sutun - 1); j <= Math.min(sutunlar - 1, sutun + 1); j++) {
+                if (mayinAlani[i][j] == -1) {
+                    sayac++;
+                }
+            }
+        }
+        return sayac;
+    }
+
+    public void oyunTahtasiniYazdir() {
+        for (int i = 0; i < satirlar; i++) {
+            for (int j = 0; j < sutunlar; j++) {
+                if (bulunan[i][j]) {
+                    System.out.print(mayinAlani[i][j] + " ");
+                } else {
+                    System.out.print(". ");
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    public void oynanis() {
+        Scanner scanner = new Scanner(System.in);
+
+        while (kalanHucreler > 0) {
+            System.out.println("Kalan hücreler: " + kalanHucreler);
+            oyunTahtasiniYazdir();
+            System.out.print("Satır girin (0 ile " + (satirlar - 1) + " arası): ");
+            int satir = scanner.nextInt();
+
+            System.out.print("Sütun girin (0 ile " + (sutunlar - 1) + " arası): ");
+            int sutun = scanner.nextInt();
+
+            if (satir < 0 || satir >= satirlar || sutun < 0 || sutun >= sutunlar || bulunan[satir][sutun]) {
+                System.out.println("Geçersiz hamle! Tekrar deneyin.");
+                continue;
+            }
+
+            hucreyiAc(satir, sutun);
+
+            if (mayinAlani[satir][sutun] == -1) {
+                System.out.println("Oyun bitti! Bir mayına bastınız.");
+                return;
+            }
+
+            if (kalanHucreler == 0) {
+                System.out.println("Tebrikler! Kazandınız!");
+                return;
+            }
+        }
+    }
+
+    private void hucreyiAc(int satir, int sutun) {
+        if (!bulunan[satir][sutun]) {
+            bulunan[satir][sutun] = true;
+            kalanHucreler--;
+
+            if (mayinAlani[satir][sutun] == 0) {
+                for (int i = Math.max(0, satir - 1); i <= Math.min(satirlar - 1, satir + 1); i++) {
+                    for (int j = Math.max(0, sutun - 1); j <= Math.min(sutunlar - 1, sutun + 1); j++) {
+                        hucreyiAc(i, j);
+                    }
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Satır sayısını girin: ");
+        int satirlar = scanner.nextInt();
+
+        System.out.print("Sütun sayısını girin: ");
+        int sutunlar = scanner.nextInt();
+
+        MineSweeper mayinTarlasi = new MineSweeper(satirlar, sutunlar);
+        mayinTarlasi.oynanis();
+    }
+}
